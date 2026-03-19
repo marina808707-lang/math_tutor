@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Запись к репетитору</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Mulish:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Mulish',sans-serif;background:#faf8f3;color:#1a1a2e;min-height:100vh;padding-bottom:40px}
+.hdr{background:#1a1a2e;color:#faf8f3;padding:28px 24px 24px;position:relative;overflow:hidden}
+.hdr::before{content:'∑ ∫ √ π';position:absolute;right:16px;top:10px;font-size:11px;letter-spacing:6px;color:#c9a84c;opacity:0.6;font-family:'Playfair Display',serif}
+.hdr h1{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;line-height:1.2;margin-bottom:6px}
+.hdr p{font-size:13px;color:#e8d5a3;font-weight:300}
+.pbar{background:rgba(255,255,255,0.1);height:3px;margin-top:18px;border-radius:2px;overflow:hidden}
+.pfill{background:#c9a84c;height:100%;border-radius:2px;transition:width 0.4s cubic-bezier(.4,0,.2,1)}
+.plbl{font-size:11px;color:#e8d5a3;margin-top:6px;font-weight:500;letter-spacing:0.5px}
+.container{padding:0 20px}
+.step{display:none;animation:fadeSlide 0.35s ease forwards}
+.step.active{display:block}
+@keyframes fadeSlide{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.stitle{font-family:'Playfair Display',serif;font-size:20px;font-weight:600;margin:28px 0 6px;color:#1a1a2e;line-height:1.3}
+.ssub{font-size:13px;color:#7a7a8c;margin-bottom:20px;font-weight:400}
+.field{margin-bottom:18px}
+.field label{display:block;font-size:12px;font-weight:600;letter-spacing:0.8px;text-transform:uppercase;color:#7a7a8c;margin-bottom:7px}
+input[type="text"],textarea,select{width:100%;background:#fff;border:1.5px solid #e2ddd0;border-radius:10px;padding:13px 15px;font-family:'Mulish',sans-serif;font-size:15px;color:#1a1a2e;outline:none;transition:border-color 0.2s;-webkit-appearance:none}
+input[type="text"]:focus,textarea:focus,select:focus{border-color:#c9a84c;box-shadow:0 0 0 3px rgba(201,168,76,0.12)}
+textarea{min-height:90px;resize:none}
+.opts{display:grid;gap:10px}
+.ocard{background:#fff;border:1.5px solid #e2ddd0;border-radius:12px;padding:14px 16px;cursor:pointer;display:flex;align-items:flex-start;gap:12px;transition:all 0.2s}
+.ocard:active{transform:scale(0.98)}
+.ocard.sel{border-color:#c9a84c;background:#fffbf0}
+.ocard.part2card{border-style:dashed}
+.ocard.part2card.sel{border-style:solid}
+.radio{width:20px;height:20px;border-radius:50%;border:2px solid #e2ddd0;flex-shrink:0;margin-top:1px;transition:all 0.2s;display:flex;align-items:center;justify-content:center}
+.ocard.sel .radio{border-color:#c9a84c;background:#c9a84c}
+.ocard.sel .radio::after{content:'';width:7px;height:7px;border-radius:50%;background:#fff}
+.olabel{font-size:15px;font-weight:500;color:#1a1a2e;line-height:1.3}
+.odesc{font-size:12px;color:#7a7a8c;margin-top:2px}
+.oprice{font-size:13px;font-weight:700;color:#c9a84c;white-space:nowrap;margin-top:2px}
+.btn-next{width:100%;background:#1a1a2e;color:#faf8f3;border:none;border-radius:12px;padding:16px;font-family:'Mulish',sans-serif;font-size:15px;font-weight:600;cursor:pointer;margin-top:24px;letter-spacing:0.3px;transition:all 0.2s}
+.btn-next:active{transform:scale(0.98);opacity:0.9}
+.btn-next.gold{background:#c9a84c;color:#1a1a2e}
+.btn-back{background:none;border:none;color:#7a7a8c;font-family:'Mulish',sans-serif;font-size:13px;font-weight:500;cursor:pointer;padding:10px 0 0;display:flex;align-items:center;gap:5px}
+.err{color:#c0392b;font-size:12px;margin-top:5px;display:none}
+.err.show{display:block}
+.divider{height:1px;background:#e2ddd0;margin:22px 0}
+.part2-expand{display:none;background:#fffbf0;border:1.5px solid #c9a84c;border-top:none;border-bottom-left-radius:12px;border-bottom-right-radius:12px;padding:16px;animation:fadeSlide 0.25s ease forwards;margin-bottom:2px}
+.part2-expand.show{display:block}
+.exam-tabs{display:flex;gap:8px;margin-bottom:14px}
+.etab{flex:1;padding:8px;border-radius:8px;border:1.5px solid #e2ddd0;background:#fff;font-family:'Mulish',sans-serif;font-size:13px;font-weight:500;color:#7a7a8c;cursor:pointer;transition:all 0.2s;text-align:center}
+.etab.on{background:#c9a84c;border-color:#c9a84c;color:#1a1a2e}
+.task{background:#fff;border:0.5px solid #e2ddd0;border-radius:8px;padding:11px 14px;margin-bottom:8px;cursor:pointer;display:flex;align-items:center;gap:10px;transition:all 0.15s;user-select:none}
+.task:last-of-type{margin-bottom:0}
+.task:active{transform:scale(0.99)}
+.task.on{border-color:#c9a84c;background:#fffbf0}
+.tnum{width:28px;height:28px;border-radius:6px;background:#f5eed8;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;color:#7a7a8c;flex-shrink:0;transition:all 0.15s}
+.task.on .tnum{background:#c9a84c;color:#fff}
+.tinfo{flex:1}
+.tname{font-size:14px;font-weight:500;color:#1a1a2e}
+.tdesc{font-size:11px;color:#7a7a8c;margin-top:1px}
+.tprice{font-size:13px;font-weight:700;color:#7a7a8c;white-space:nowrap}
+.task.on .tprice{color:#c9a84c}
+.tchk{width:18px;height:18px;border-radius:4px;border:1.5px solid #e2ddd0;display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;flex-shrink:0;transition:all 0.15s}
+.task.on .tchk{background:#c9a84c;border-color:#c9a84c}
+.p2-total-row{display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding-top:10px;border-top:0.5px solid #e2ddd0}
+.p2-total-lbl{font-size:13px;color:#7a7a8c}
+.p2-total-sum{font-size:20px;font-weight:600;color:#1a1a2e}
+.p2-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+.atag{padding:3px 10px;border-radius:20px;background:#fffbf0;border:0.5px solid #c9a84c;font-size:11px;color:#8a6a1a}
+.p2-note{font-size:11px;color:#7a7a8c;margin-top:10px;padding-top:10px;border-top:0.5px solid #e2ddd0;line-height:1.6}
+.success-screen{display:none;text-align:center;padding:60px 24px;animation:fadeSlide 0.5s ease forwards}
+.success-screen.show{display:block}
+.success-icon{width:80px;height:80px;background:#f5eed8;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 24px;font-size:36px}
+.success-screen h2{font-family:'Playfair Display',serif;font-size:26px;margin-bottom:12px}
+.success-screen p{color:#7a7a8c;font-size:15px;line-height:1.6}
+.sbox{background:#fff;border:1.5px solid #e2ddd0;border-radius:14px;padding:16px;margin-top:20px;text-align:left}
+.srow{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #e2ddd0;font-size:13px}
+.srow:last-child{border-bottom:none}
+.sk{color:#7a7a8c}.sv{font-weight:600;color:#1a1a2e;text-align:right;max-width:60%}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <h1>Запись на занятия<br>по математике</h1>
+  <p>Заполните анкету — свяжусь в течение дня</p>
+  <div class="pbar"><div class="pfill" id="pf" style="width:12%"></div></div>
+  <div class="plbl" id="pl">Шаг 1 из 8</div>
+</div>
+
+<div class="container">
+
+  <div class="step active" id="s1">
+    <div class="stitle">Как вас зовут?</div>
+    <div class="ssub">Имя ученика или родителя</div>
+    <div class="field"><label>Имя</label><input type="text" id="name" placeholder="Например: Анна" maxlength="60"></div>
+    <div class="err" id="e1">Пожалуйста, введите имя</div>
+    <button class="btn-next" onclick="go(2)">Далее →</button>
+  </div>
+
+  <div class="step" id="s2">
+    <div class="stitle">Кто заполняет?</div>
+    <div class="ssub">Это поможет лучше подготовиться</div>
+    <div class="opts">
+      <div class="ocard" onclick="sel('who','student',this)"><div class="radio"></div><div><div class="olabel">Ученик</div><div class="odesc">Сам ищу репетитора</div></div></div>
+      <div class="ocard" onclick="sel('who','parent',this)"><div class="radio"></div><div><div class="olabel">Родитель</div><div class="odesc">Ищу для ребёнка</div></div></div>
+    </div>
+    <div class="err" id="e2">Выберите вариант</div>
+    <button class="btn-next" onclick="go(3)">Далее →</button>
+    <button class="btn-back" onclick="go(1)">← Назад</button>
+  </div>
+
+  <div class="step" id="s3">
+    <div class="stitle">Класс и успеваемость</div>
+    <div class="ssub">Расскажите о текущем уровне</div>
+    <div class="field">
+      <label>Класс</label>
+      <select id="grade">
+        <option value="">— выберите —</option>
+        <option>5 класс</option><option>6 класс</option><option>7 класс</option>
+        <option>8 класс</option><option>9 класс</option><option>10 класс</option>
+        <option>11 класс</option><option>Студент / Взрослый</option>
+      </select>
+      <div class="err" id="e3g">Выберите класс</div>
+    </div>
+    <div class="field">
+      <label>Успеваемость по математике</label>
+      <div class="opts">
+        <div class="ocard" onclick="sel('perf','2',this)"><div class="radio"></div><div class="olabel">2 — очень слабо</div></div>
+        <div class="ocard" onclick="sel('perf','3',this)"><div class="radio"></div><div class="olabel">3 — слабо</div></div>
+        <div class="ocard" onclick="sel('perf','4',this)"><div class="radio"></div><div class="olabel">4 — хорошо</div></div>
+        <div class="ocard" onclick="sel('perf','5',this)"><div class="radio"></div><div class="olabel">5 — отлично</div></div>
+      </div>
+      <div class="err" id="e3p">Выберите успеваемость</div>
+    </div>
+    <button class="btn-next" onclick="go(4)">Далее →</button>
+    <button class="btn-back" onclick="go(2)">← Назад</button>
+  </div>
+
+  <div class="step" id="s4">
+    <div class="stitle">Цель обращения</div>
+    <div class="ssub">Выберите подходящий вариант</div>
+    <div class="opts" id="goalOpts">
+      <div class="ocard" onclick="sel('goal','few',this)"><div class="radio"></div><div><div class="olabel">Пара уроков</div><div class="odesc">Разобрать конкретную тему</div></div></div>
+      <div class="ocard" onclick="sel('goal','long',this)"><div class="radio"></div><div><div class="olabel">Долгосрочные занятия</div><div class="odesc">Повышение успеваемости</div></div></div>
+      <div class="ocard" onclick="sel('goal','oge',this)"><div class="radio"></div><div><div class="olabel">Подготовка к ОГЭ</div><div class="odesc">Высокий балл на экзамене</div></div></div>
+      <div class="ocard" onclick="sel('goal','ege',this)"><div class="radio"></div><div><div class="olabel">Подготовка к ЕГЭ</div><div class="odesc">Высокий балл на экзамене</div></div></div>
+      <div class="ocard part2card" id="part2GoalCard" onclick="sel('goal','part2',this)">
+        <div class="radio"></div>
+        <div style="flex:1"><div class="olabel">Проверка второй части</div><div class="odesc">ОГЭ или ЕГЭ — без занятий</div></div>
+        <div class="oprice">от 200 ₽</div>
+      </div>
+    </div>
+    <div class="err" id="e4">Выберите цель</div>
+
+    <div class="part2-expand" id="part2Expand">
+      <div class="exam-tabs">
+        <button class="etab on" id="tabOge" onclick="switchExam('oge')">ОГЭ</button>
+        <button class="etab" id="tabEge" onclick="switchExam('ege')">ЕГЭ</button>
+      </div>
+      <div id="taskList"></div>
+      <div class="p2-total-row">
+        <div class="p2-total-lbl">Итого за проверку</div>
+        <div class="p2-total-sum" id="p2Total">0 ₽</div>
+      </div>
+      <div class="p2-tags" id="p2Tags"></div>
+      <div class="p2-note">Решаете задания, присылаете фото — проверю и отвечу с разбором и баллами в течение 24 часов</div>
+    </div>
+
+    <button class="btn-next" onclick="go(5)">Далее →</button>
+    <button class="btn-back" onclick="go(3)">← Назад</button>
+  </div>
+
+  <div class="step" id="s5">
+    <div id="s5c"></div>
+    <button class="btn-next" onclick="go(6)">Далее →</button>
+    <button class="btn-back" onclick="go(4)">← Назад</button>
+  </div>
+
+  <div class="step" id="s6">
+    <div class="stitle">Формат занятий</div>
+    <div class="ssub">Выберите удобный вариант</div>
+    <div class="opts">
+      <div class="ocard" onclick="sel('fmt','individual',this)"><div class="radio"></div><div style="flex:1"><div class="olabel">Индивидуально</div><div class="odesc">Полное внимание вам</div></div><div class="oprice">3 000 ₽/ч</div></div>
+      <div class="ocard" onclick="sel('fmt','pair_f',this)"><div class="radio"></div><div style="flex:1"><div class="olabel">В паре с другом</div><div class="odesc">Уже есть партнёр</div></div><div class="oprice">2 000 ₽/ч</div></div>
+      <div class="ocard" onclick="sel('fmt','pair_s',this)"><div class="radio"></div><div style="flex:1"><div class="olabel">В паре, нужна пара</div><div class="odesc">Подберу партнёра</div></div><div class="oprice">2 000 ₽/ч</div></div>
+      <div class="ocard" onclick="sel('fmt','group',this)"><div class="radio"></div><div style="flex:1"><div class="olabel">Группа 3–5 человек</div><div class="odesc">Самый экономичный</div></div><div class="oprice">1 200 ₽/ч</div></div>
+    </div>
+    <div class="err" id="e6">Выберите формат</div>
+    <button class="btn-next" onclick="go(7)">Далее →</button>
+    <button class="btn-back" onclick="go(5)">← Назад</button>
+  </div>
+
+  <div class="step" id="s7">
+    <div class="stitle">Учебники и пожелания</div>
+    <div class="ssub">По каким учебникам занимаетесь в школе?</div>
+    <div class="field"><label>Автор учебника</label><input type="text" id="books" placeholder="Например: Макарычев, Атанасян"></div>
+    <div class="field"><label>Дополнительные пожелания</label><textarea id="notes" placeholder="Удобное время, особые пожелания..."></textarea></div>
+    <button class="btn-next" onclick="go(8)">Далее →</button>
+    <button class="btn-back" onclick="go(6)">← Назад</button>
+  </div>
+
+  <div class="step" id="s8">
+    <div class="stitle">Контакт для связи</div>
+    <div class="ssub">Как связаться с вами в Telegram?</div>
+    <div class="field">
+      <label>Ник в Telegram</label>
+      <input type="text" id="tg" placeholder="@username" maxlength="60">
+      <div style="font-size:12px;color:#7a7a8c;margin-top:5px">Например: anna_petrova</div>
+      <div class="err" id="e8">Укажите ник</div>
+    </div>
+    <button class="btn-next gold" onclick="submit()">Отправить заявку</button>
+    <button class="btn-back" onclick="go(7)">← Назад</button>
+  </div>
+
+  <div class="success-screen" id="succ">
+    <div class="success-icon">🎉</div>
+    <h2>Заявка отправлена!</h2>
+    <p>Свяжусь с вами в ближайшее время по указанному нику в Telegram.</p>
+    <div class="sbox" id="sbox"></div>
+  </div>
+
+</div>
+
+<script>
+const tg=window.Telegram&&window.Telegram.WebApp;
+if(tg){tg.expand();tg.ready();}
+const TASKS_OGE=[
+  {id:20,desc:'Задание 20',price:200},{id:21,desc:'Задание 21',price:200},
+  {id:22,desc:'Задание 22',price:200},{id:23,desc:'Задание 23',price:200},
+  {id:24,desc:'Задание 24',price:200},{id:25,desc:'Задание 25',price:200},
+];
+const TASKS_EGE=[
+  {id:13,desc:'Уравнение (а, б)',price:200},{id:14,desc:'Стереометрия (а, б)',price:300},
+  {id:15,desc:'Неравенство',price:200},{id:16,desc:'Экономическая задача',price:200},
+  {id:17,desc:'Планиметрия (а, б)',price:300},{id:18,desc:'Параметр',price:400},
+  {id:19,desc:'Олимпиадная задача (а, б, в)',price:400},
+];
+const taskOn={oge:{},ege:{}};
+TASKS_OGE.forEach(t=>taskOn.oge[t.id]=false);
+TASKS_EGE.forEach(t=>taskOn.ege[t.id]=false);
+const d={who:'',goal:'',fmt:'',perf:'',solved:''};
+let cur=1;const steps=8;let examTab='oge';
+function upd(n){document.getElementById('pf').style.width=(n/steps*100)+'%';document.getElementById('pl').textContent='Шаг '+n+' из '+steps;}
+function go(n){
+  if(n>1&&!validate(cur))return;
+  if(n===5&&d.goal==='part2'){go(8);return;}
+  if(n===6&&d.goal==='part2'){go(8);return;}
+  document.querySelectorAll('.step').forEach(s=>s.classList.remove('active'));
+  cur=n;if(n===5)renderS5();
+  const el=document.getElementById('s'+n);
+  if(el){el.classList.add('active');upd(n);}
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function shErr(id,msg){const el=document.getElementById(id);if(msg)el.textContent=msg;el.classList.add('show')}
+function hdErr(id){document.getElementById(id).classList.remove('show')}
+function validate(s){
+  if(s===1){if(!document.getElementById('name').value.trim()){shErr('e1');return false}hdErr('e1');return true}
+  if(s===2){if(!d.who){shErr('e2');return false}hdErr('e2');return true}
+  if(s===3){
+    if(!document.getElementById('grade').value){shErr('e3g');return false}hdErr('e3g');
+    if(!d.perf){shErr('e3p');return false}hdErr('e3p');return true;
+  }
+  if(s===4){
+    if(!d.goal){shErr('e4','Выберите цель');return false}
+    if(d.goal==='part2'&&calcTotal()===0){shErr('e4','Выберите хотя бы одно задание');return false}
+    hdErr('e4');return true;
+  }
+  if(s===6){if(!d.fmt){shErr('e6');return false}hdErr('e6');return true}
+  if(s===8){if(!document.getElementById('tg').value.trim()){shErr('e8');return false}hdErr('e8');return true}
+  return true;
+}
+function sel(field,val,el){
+  d[field]=val;
+  const par=el.closest('.opts')||el.parentElement;
+  par.querySelectorAll('.ocard').forEach(c=>c.classList.remove('sel'));
+  el.classList.add('sel');
+  if(field==='goal'){
+    const expand=document.getElementById('part2Expand');
+    const card=document.getElementById('part2GoalCard');
+    if(val==='part2'){
+      expand.classList.add('show');
+      card.style.borderBottomLeftRadius='0';card.style.borderBottomRightRadius='0';
+      renderTasks();
+    } else {
+      expand.classList.remove('show');
+      card.style.borderBottomLeftRadius='';card.style.borderBottomRightRadius='';
+    }
+  }
+}
+function switchExam(tab){
+  examTab=tab;
+  document.getElementById('tabOge').classList.toggle('on',tab==='oge');
+  document.getElementById('tabEge').classList.toggle('on',tab==='ege');
+  renderTasks();
+}
+function renderTasks(){
+  const list=document.getElementById('taskList');
+  const tasks=examTab==='oge'?TASKS_OGE:TASKS_EGE;
+  list.innerHTML='';
+  tasks.forEach(t=>{
+    const div=document.createElement('div');
+    div.className='task'+(taskOn[examTab][t.id]?' on':'');
+    div.onclick=()=>{taskOn[examTab][t.id]=!taskOn[examTab][t.id];renderTasks();updateP2Total();};
+    div.innerHTML=`<div class="tnum">${t.id}</div><div class="tinfo"><div class="tname">Задание ${t.id}</div><div class="tdesc">${t.desc}</div></div><div class="tprice">${t.price} ₽</div><div class="tchk">${taskOn[examTab][t.id]?'✓':''}</div>`;
+    list.appendChild(div);
+  });
+  updateP2Total();
+}
+function calcTotal(){
+  let total=0;
+  TASKS_OGE.forEach(t=>{if(taskOn.oge[t.id])total+=t.price;});
+  TASKS_EGE.forEach(t=>{if(taskOn.ege[t.id])total+=t.price;});
+  return total;
+}
+function updateP2Total(){
+  document.getElementById('p2Total').textContent=calcTotal().toLocaleString('ru')+' ₽';
+  const tagsOge=TASKS_OGE.filter(t=>taskOn.oge[t.id]).map(t=>`№${t.id}`);
+  const tagsEge=TASKS_EGE.filter(t=>taskOn.ege[t.id]).map(t=>`№${t.id}`);
+  const all=[];
+  if(tagsOge.length)all.push('ОГЭ: '+tagsOge.join(', '));
+  if(tagsEge.length)all.push('ЕГЭ: '+tagsEge.join(', '));
+  document.getElementById('p2Tags').innerHTML=all.map(l=>`<div class="atag">${l}</div>`).join('');
+}
+function renderS5(){
+  const c=document.getElementById('s5c');
+  if(d.goal==='oge'||d.goal==='ege'){
+    const ex=d.goal==='oge'?'ОГЭ':'ЕГЭ';
+    c.innerHTML=`<div class="stitle">Подготовка к ${ex}</div><div class="ssub">Расскажите об опыте</div>
+    <div class="field"><label>Решали уже варианты ${ex}?</label>
+    <div class="opts">
+      <div class="ocard" onclick="sel('solved','yes',this)"><div class="radio"></div><div class="olabel">Да, решал(а)</div></div>
+      <div class="ocard" onclick="sel('solved','no',this)"><div class="radio"></div><div class="olabel">Нет, ещё не пробовал(а)</div></div>
+    </div></div>
+    <div id="sf" style="display:none" class="field"><label>Сколько баллов набирали?</label><input type="text" id="scores" placeholder="Например: около 65 баллов"></div>`;
+    setTimeout(()=>{
+      document.querySelectorAll('#s5c .ocard').forEach(card=>card.addEventListener('click',()=>{
+        const sf=document.getElementById('sf');
+        if(sf)sf.style.display=d.solved==='yes'?'block':'none';
+      }));
+    },50);
+  } else if(d.goal==='long'){
+    c.innerHTML=`<div class="stitle">Долгосрочные занятия</div><div class="ssub">Расскажите о ситуации</div>
+    <div class="field"><label>Текущие оценки и проблемные темы</label><textarea id="gcur" placeholder="Например: 3 по алгебре, не получаются дроби"></textarea></div>`;
+  } else {
+    c.innerHTML=`<div class="stitle">Пара уроков</div><div class="ssub">Что нужно разобрать?</div>
+    <div class="field"><label>Темы для изучения</label><textarea id="topics" placeholder="Например: тригонометрия, формулы сокращённого умножения"></textarea></div>`;
+  }
+}
+function getPart2Summary(){
+  const og=TASKS_OGE.filter(t=>taskOn.oge[t.id]);
+  const eg=TASKS_EGE.filter(t=>taskOn.ege[t.id]);
+  const parts=[];
+  if(og.length)parts.push('ОГЭ №'+og.map(t=>t.id).join(','));
+  if(eg.length)parts.push('ЕГЭ №'+eg.map(t=>t.id).join(','));
+  return parts.length?parts.join(' / '):'—';
+}
+function submit(){
+  if(!validate(8))return;
+  const scores=document.getElementById('scores')?document.getElementById('scores').value.trim():'';
+  const topics=document.getElementById('topics')?document.getElementById('topics').value.trim():'';
+  const gcur=document.getElementById('gcur')?document.getElementById('gcur').value.trim():'';
+  const payload={
+    name:document.getElementById('name').value.trim(),
+    who:d.who==='student'?'Ученик':'Родитель',
+    grade:document.getElementById('grade').value,
+    perf:d.perf,
+    goal:{few:'Пара уроков',long:'Долгосрочные занятия',oge:'Подготовка к ОГЭ',ege:'Подготовка к ЕГЭ',part2:'Проверка второй части'}[d.goal]||d.goal,
+    part2:getPart2Summary(),
+    part2sum:d.goal==='part2'?calcTotal().toLocaleString('ru')+' ₽':'—',
+    format:{individual:'Индивидуально — 3000₽/ч',pair_f:'В паре с другом — 2000₽/ч',pair_s:'В паре (подберу пару) — 2000₽/ч',group:'Группа 3–5 чел — 1200₽/ч'}[d.fmt]||'—',
+    solved:d.solved==='yes'?'Да':d.solved==='no'?'Нет':'—',
+    scores:scores||'—',topics:topics||'—',gcur:gcur||'—',
+    books:document.getElementById('books').value.trim()||'—',
+    notes:document.getElementById('notes').value.trim()||'—',
+    tgNick:'@'+document.getElementById('tg').value.trim().replace(/^@/,''),
+  };
+  if(tg)tg.sendData(JSON.stringify(payload));
+  document.querySelectorAll('.step').forEach(s=>s.style.display='none');
+  document.getElementById('pf').style.width='100%';
+  document.getElementById('pl').textContent='Готово!';
+  const isPart2=d.goal==='part2';
+  document.getElementById('sbox').innerHTML=`
+    <div class="srow"><span class="sk">Имя</span><span class="sv">${payload.name}</span></div>
+    <div class="srow"><span class="sk">Кто</span><span class="sv">${payload.who}</span></div>
+    <div class="srow"><span class="sk">Класс</span><span class="sv">${payload.grade}</span></div>
+    <div class="srow"><span class="sk">Цель</span><span class="sv">${payload.goal}</span></div>
+    ${isPart2?`<div class="srow"><span class="sk">Задания</span><span class="sv">${payload.part2}</span></div><div class="srow"><span class="sk">Сумма</span><span class="sv">${payload.part2sum}</span></div>`:`<div class="srow"><span class="sk">Формат</span><span class="sv">${payload.format}</span></div>`}
+    <div class="srow"><span class="sk">Telegram</span><span class="sv">${payload.tgNick}</span></div>`;
+  document.getElementById('succ').classList.add('show');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+</script>
+</body>
+</html>
