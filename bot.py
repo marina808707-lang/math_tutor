@@ -120,7 +120,8 @@ def format_notification(d: dict) -> str:
 
 # ─── БОТ ──────────────────────────────────────────────────────────────────────
 
-bot = Bot(token=BOT_TOKEN, parse_mode="HTML")
+from aiogram.client.default import DefaultBotProperties
+bot = Bot(token=BOT_TOKEN, default=DefaultBotProperties(parse_mode="HTML"))
 dp = Dispatcher()
 
 @dp.message(CommandStart())
