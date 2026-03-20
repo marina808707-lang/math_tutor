@@ -10,8 +10,6 @@ from aiogram.filters import CommandStart
 from aiogram.types import WebAppInfo, ReplyKeyboardMarkup, KeyboardButton
 from aiogram.client.default import DefaultBotProperties
  
-# ─── ВЕБ-СЕРВЕР ДЛЯ RENDER ───────────────────────────────────────────────────
- 
 class HealthHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         self.send_response(200)
@@ -27,18 +25,12 @@ def run_health_server():
  
 threading.Thread(target=run_health_server, daemon=True).start()
  
-# ─── НАСТРОЙКИ ────────────────────────────────────────────────────────────────
- 
 BOT_TOKEN = "8670573269:AAFdtY1kUPZwLfale4q-HWk6uYCh6ACViC0"
 TUTOR_CHAT_ID = 742886023
 MINI_APP_URL = "https://marina808707-lang.github.io/math_tutor/"
  
-# ─── НАСТРОЙКА ЛОГОВ ──────────────────────────────────────────────────────────
- 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
- 
-# ─── БОТ ──────────────────────────────────────────────────────────────────────
  
 bot = Bot(token=BOT_TOKEN, default=DefaultBotProperties(parse_mode="HTML"))
 dp = Dispatcher()
@@ -55,30 +47,16 @@ async def start(message: types.Message):
         resize_keyboard=True
     )
     await message.answer(
-        "👋 <b>Привет!</b>\n\n"
-        "Нажмите кнопку ниже, чтобы заполнить анкету 🎯",
+        "👋 <b>Привет!</b>\n\nНажмите кнопку ниже, чтобы заполнить анкету 🎯",
         reply_markup=kb
     )
  
 @dp.message(F.web_app_data)
 async def handle_webapp_data(message: types.Message):
+    logger.info(f"ПОЛУЧЕНО web_app_data: {message.web_app_data}")
     try:
         data = json.loads(message.web_app_data.data)
         logger.info(f"Получена заявка от {data.get('tgNick', '?')}")
- 
-        gm = {
-            'few': 'Пара уроков',
-            'long': 'Долгосрочные занятия',
-            'oge': 'Подготовка к ОГЭ',
-            'ege': 'Подготовка к ЕГЭ',
-            'part2': 'Проверка второй части'
-        }
-        fm = {
-            'individual': 'Индивидуально — 3000₽/ч',
-            'pair_f': 'В паре с другом — 2000₽/ч',
-            'pair_s': 'В паре (подберу пару) — 2000₽/ч',
-            'group': 'Группа 3–5 человек — 1200₽/ч'
-        }
  
         text = (
             "📬 <b>Новая заявка!</b>\n\n"
@@ -119,8 +97,6 @@ async def handle_webapp_data(message: types.Message):
     except Exception as e:
         logger.error(f"Ошибка обработки заявки: {e}")
         await message.answer("⚠️ Что-то пошло не так. Попробуйте ещё раз.")
- 
-# ─── ЗАПУСК ───────────────────────────────────────────────────────────────────
  
 async def main():
     logger.info("🤖 Бот запущен!")
