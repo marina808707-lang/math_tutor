@@ -358,7 +358,7 @@ function getPart2Summary(){
   if(eg.length)parts.push('ЕГЭ №'+eg.map(t=>t.id).join(','));
   return parts.length?parts.join(' / '):'—';
 }
-function submit(){
+async function submit(){
   if(!validate(8))return;
   const scores=document.getElementById('scores')?document.getElementById('scores').value.trim():'';
   const topics=document.getElementById('topics')?document.getElementById('topics').value.trim():'';
@@ -378,7 +378,7 @@ function submit(){
     notes:document.getElementById('notes').value.trim()||'—',
     tgNick:'@'+document.getElementById('tg').value.trim().replace(/^@/,''),
   };
-  if(tg)tg.sendData(JSON.stringify(payload));
+  try { await fetch("https://math-tutor-ftkw.onrender.com/submit", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)}); } catch(e){console.error(e);}
   document.querySelectorAll('.step').forEach(s=>s.style.display='none');
   document.getElementById('pf').style.width='100%';
   document.getElementById('pl').textContent='Готово!';
